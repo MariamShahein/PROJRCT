@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Encryption</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* إعدادات الصفحة العامة */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #4a00e0, #8e2de2);
+            color: #fff;
+        }
+
+        /* الخلفية المتحركة */
+        .background {
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: url('https://k.top4top.io/p_3262xx2ly1.png') no-repeat center center/cover;
+            filter: blur(10px);
+            animation: move-horizontal 25s infinite alternate ease-in-out;
+            z-index: -1;
+        }
+
+        @keyframes move-horizontal {
+            from {
+                transform: translateX(-15%);
+            }
+            to {
+                transform: translateX(15%);
+            }
+        }
+
+        /* إعدادات الحاوية */
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            margin-bottom: 20px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        input, select, output {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+            color: #333;
+            margin-top: 5px;
+        }
+
+        output {
+            display: block;
+            margin-top: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #000;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #ff5722;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 87, 34, 0.3);
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: #e64a19;
+            transform: scale(1.05);
+        }
+
+        .error {
+            color: #f44336;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* الأيقونات */
+        .form-group i {
+            color: #ffeb3b;
+        }
+
+        /* تذييل الصفحة */
+        footer {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        /* إضافة تأثيرات إضاءة عند التمرير */
+        footer:hover {
+            color: #ffeb3b;
+            text-shadow: 0 0 10px #ffeb3b, 0 0 20px #ffeb3b, 0 0 30px #ffeb3b;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <img src="logo.png" alt="University Logo" class="logo">
+        <div class="form-group">
+            <label for="inputText"><i class="fas fa-keyboard"></i> Enter Text:</label>
+            <input type="text" id="inputText" placeholder="Type your text here">
+        </div>
+        <div class="form-group">
+            <label for="encryptionType"><i class="fas fa-lock"></i> Select Encryption Type:</label>
+            <select id="encryptionType" onchange="toggleKeyInput()">
+                <option value="caesar">Caesar Cipher</option>
+                <option value="vigenere">Vigenère Cipher</option>
+                <option value="transposition">Transposition Cipher</option>
+                <option value="playfair">Playfair Cipher</option>
+            </select>
+        </div>
+        <div class="form-group" id="keyInputGroup" style="display: none;">
+            <label id="keyLabel" for="encryptionKey"><i class="fas fa-key"></i> Enter Key:</label>
+            <input type="text" id="encryptionKey" placeholder="Enter encryption key">
+            <div id="errorMessage" class="error"></div>
+        </div>
+        <div class="form-group">
+            <button onclick="encryptText()"><i class="fas fa-shield-alt"></i> Encrypt</button>
+        </div>
+        <div class="form-group">
+            <label for="outputText"><i class="fas fa-code"></i> Encrypted Text:</label>
+            <output id="outputText"></output>
+        </div>
+    </div>
+
+    <!-- تذييل حقوق الملكية مع تأثير الإضاءة -->
+    <footer>
+        &copy; 2024 MARIAM AMROO & Farah Mahmoud Hassan. All rights reserved.
+    </footer>
+
+    <script>
+        function toggleKeyInput() {
+            const encryptionType = document.getElementById('encryptionType').value;
+            const keyInputGroup = document.getElementById('keyInputGroup');
+            const keyLabel = document.getElementById('keyLabel');
+
+            if (encryptionType === 'caesar' || encryptionType === 'vigenere' || encryptionType === 'playfair') {
+                keyInputGroup.style.display = 'block';
+                keyLabel.innerText = encryptionType === 'caesar' ? "Enter the Number Key:" : "Enter the Word Key:";
+            } else {
+                keyInputGroup.style.display = 'none';
+            }
+        }
+
+        function encryptText() {
+            const text = document.getElementById('inputText').value;
+            const key = document.getElementById('encryptionKey').value;
+            const encryptionType = document.getElementById('encryptionType').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const outputText = document.getElementById('outputText');
+
+            errorMessage.innerText = '';
+            outputText.innerText = '';
+
+            if (!text) {
+                errorMessage.innerText = 'Please enter text to encrypt.';
+                return;
+            }
+
+            let encryptedText = '';
+
+            if (encryptionType === 'caesar') {
+                if (isNaN(key)) {
+                    errorMessage.innerText = 'Please enter a valid number key for Caesar Cipher.';
+                    return;
+                }
+                encryptedText = caesarEncrypt(text, key);
+            } else if (encryptionType === 'vigenere') {
+                if (/[^a-zA-Z]/.test(key)) {
+                    errorMessage.innerText = 'Invalid key for Vigenère Cipher. Please enter alphabetic characters only.';
+                    return;
+                }
+                encryptedText = vigenereEncrypt(text, key);
+            } else if (encryptionType === 'transposition') {
+                encryptedText = transpositionEncrypt(text);
+            } else if (encryptionType === 'playfair') {
+                encryptedText = playfairEncrypt(text, key);
+            }
+
+            outputText.innerText = encryptedText;
+        }
+    </script>
+</body>
+</html>
