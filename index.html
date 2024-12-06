@@ -29,16 +29,16 @@
             height: 140%;
             background: url('https://k.top4top.io/p_3262xx2ly1.png') no-repeat center center/cover;
             filter: blur(10px);
-            animation: move-horizontal 25s infinite alternate ease-in-out;
+            animation: move-horizontal 20s infinite alternate ease-in-out;
             z-index: -1;
         }
 
         @keyframes move-horizontal {
             from {
-                transform: translateX(-15%);
+                transform: translateX(-5%);
             }
             to {
-                transform: translateX(15%);
+                transform: translateX(5%);
             }
         }
 
@@ -119,12 +119,6 @@
             font-weight: bold;
         }
 
-        /* الأيقونات */
-        .form-group i {
-            color: #ffeb3b;
-        }
-
-        /* تذييل الصفحة */
         footer {
             position: fixed;
             bottom: 10px;
@@ -135,13 +129,6 @@
             background-color: rgba(0, 0, 0, 0.6);
             color: #fff;
             font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        /* إضافة تأثيرات إضاءة عند التمرير */
-        footer:hover {
-            color: #ffeb3b;
-            text-shadow: 0 0 10px #ffeb3b, 0 0 20px #ffeb3b, 0 0 30px #ffeb3b;
         }
     </style>
 </head>
@@ -176,12 +163,12 @@
         </div>
     </div>
 
-    <!-- تذييل حقوق الملكية مع تأثير الإضاءة -->
     <footer>
         &copy; 2024 MARIAM AMROO & Farah Mahmoud Hassan. All rights reserved.
     </footer>
 
     <script>
+        // Show key input field for applicable ciphers
         function toggleKeyInput() {
             const encryptionType = document.getElementById('encryptionType').value;
             const keyInputGroup = document.getElementById('keyInputGroup');
@@ -195,6 +182,7 @@
             }
         }
 
+        // Encrypt text based on selected cipher
         function encryptText() {
             const text = document.getElementById('inputText').value;
             const key = document.getElementById('encryptionKey').value;
@@ -217,7 +205,7 @@
                     errorMessage.innerText = 'Please enter a valid number key for Caesar Cipher.';
                     return;
                 }
-                encryptedText = caesarEncrypt(text, key);
+                encryptedText = caesarEncrypt(text, parseInt(key));
             } else if (encryptionType === 'vigenere') {
                 if (/[^a-zA-Z]/.test(key)) {
                     errorMessage.innerText = 'Invalid key for Vigenère Cipher. Please enter alphabetic characters only.';
@@ -231,6 +219,106 @@
             }
 
             outputText.innerText = encryptedText;
+        }
+
+        // Caesar Cipher Encryption
+        function caesarEncrypt(text, shift) {
+            return text.split('').map(char => {
+                if (char.match(/[a-zA-Z]/)) {
+                    let code = char.charCodeAt(0);
+                    let base = char === char.toUpperCase() ? 65 : 97;
+                    return String.fromCharCode((code - base + shift) % 26 + base);
+                }
+                return char;
+            }).join('');
+        }
+
+        // Vigenère Cipher Encryption
+        function vigenereEncrypt(text, key) {
+            let result = '';
+            let j = 0;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char.match(/[a-zA-Z]/)) {
+                    let code = char.charCodeAt(0);
+                    let base = char === char.toUpperCase() ? 65 : 97;
+                    let shift = key[j % key.length].toLowerCase().charCodeAt(0) - 97;
+                    result += String.fromCharCode((code - base + shift) % 26 + base);
+                    j++;
+                } else {
+                    result += char;
+                }
+            }
+            return result;
+        }
+
+        // Transposition Cipher Encryption
+        function transpositionEncrypt(text) {
+            return text.split('').reverse().join('');
+        }
+
+        // Playfair Cipher Encryption
+        function playfairEncrypt(text, key) {
+            let grid = generatePlayfairGrid(key);
+            let pairs = prepareTextForPlayfair(text);
+            let encryptedText = '';
+            pairs.forEach(pair => {
+                let [char1, char2] = pair;
+                let [row1, col1] = findCharPosition(char1, grid);
+                let [row2, col2] = findCharPosition(char2, grid);
+
+                if (row1 === row2) {
+                    encryptedText += grid[row1 * 5 + (col1 + 1) % 5];
+                    encryptedText += grid[row2 * 5 + (col2 + 1) % 5];
+                } else if (col1 === col2) {
+                    encryptedText += grid[((row1 + 1) % 5) * 5 + col1];
+                    encryptedText += grid[((row2 + 1) % 5) * 5 + col2];
+                } else {
+                    encryptedText += grid[row1 * 5 + col2];
+                    encryptedText += grid[row2 * 5 + col1];
+                }
+            });
+            return encryptedText;
+        }
+
+        function generatePlayfairGrid(key) {
+            key = key.toLowerCase().replace(/[^a-z]/g, '').replace(/j/g, 'i');
+            let grid = 'abcdefghiklmnopqrstuvwxyz'.split('');
+            let used = new Set();
+            let finalGrid = [];
+            key.split('').forEach(char => {
+                if (!used.has(char)) {
+                    used.add(char);
+                    finalGrid.push(char);
+                }
+            });
+            grid.forEach(char => {
+                if (!used.has(char)) {
+                    used.add(char);
+                    finalGrid.push(char);
+                }
+            });
+            return finalGrid;
+        }
+
+        function prepareTextForPlayfair(text) {
+            text = text.toLowerCase().replace(/[^a-z]/g, '');
+            let pairs = [];
+            for (let i = 0; i < text.length; i += 2) {
+                let first = text[i];
+                let second = text[i + 1] || 'x';
+                if (first === second) {
+                    second = 'x';
+                    i--;
+                }
+                pairs.push([first, second]);
+            }
+            return pairs;
+        }
+
+        function findCharPosition(char, grid) {
+            let index = grid.indexOf(char);
+            return [Math.floor(index / 5), index % 5];
         }
     </script>
 </body>
