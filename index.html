@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Encryption</title>
+    <title>Text Encryption & Decryption</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* إعدادات الصفحة العامة */
         body {
             margin: 0;
             padding: 0;
@@ -20,7 +19,6 @@
             color: #fff;
         }
 
-        /* الخلفية المتحركة */
         .background {
             position: absolute;
             top: -20%;
@@ -42,7 +40,6 @@
             }
         }
 
-        /* إعدادات الحاوية */
         .container {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -156,9 +153,10 @@
         </div>
         <div class="form-group">
             <button onclick="encryptText()"><i class="fas fa-shield-alt"></i> Encrypt</button>
+            <button onclick="decryptText()"><i class="fas fa-unlock-alt"></i> Decrypt</button>
         </div>
         <div class="form-group">
-            <label for="outputText"><i class="fas fa-code"></i> Encrypted Text:</label>
+            <label for="outputText"><i class="fas fa-code"></i> Output Text:</label>
             <output id="outputText"></output>
         </div>
     </div>
@@ -168,7 +166,6 @@
     </footer>
 
     <script>
-        // Show key input field for applicable ciphers
         function toggleKeyInput() {
             const encryptionType = document.getElementById('encryptionType').value;
             const keyInputGroup = document.getElementById('keyInputGroup');
@@ -182,8 +179,15 @@
             }
         }
 
-        // Encrypt text based on selected cipher
         function encryptText() {
+            processText('encrypt');
+        }
+
+        function decryptText() {
+            processText('decrypt');
+        }
+
+        function processText(action) {
             const text = document.getElementById('inputText').value;
             const key = document.getElementById('encryptionKey').value;
             const encryptionType = document.getElementById('encryptionType').value;
@@ -194,56 +198,54 @@
             outputText.innerText = '';
 
             if (!text) {
-                errorMessage.innerText = 'Please enter text to encrypt.';
+                errorMessage.innerText = `Please enter text to ${action}.`;
                 return;
             }
 
-            let encryptedText = '';
+            let resultText = '';
 
             if (encryptionType === 'caesar') {
                 if (isNaN(key)) {
                     errorMessage.innerText = 'Please enter a valid number key for Caesar Cipher.';
                     return;
                 }
-                encryptedText = caesarEncrypt(text, parseInt(key));
+                const shift = action === 'encrypt' ? parseInt(key) : -parseInt(key);
+                resultText = caesarCipher(text, shift);
             } else if (encryptionType === 'vigenere') {
                 if (/[^a-zA-Z]/.test(key)) {
                     errorMessage.innerText = 'Invalid key for Vigenère Cipher. Please enter alphabetic characters only.';
                     return;
                 }
-                encryptedText = vigenereEncrypt(text, key);
+                resultText = vigenereCipher(text, key, action);
             } else if (encryptionType === 'transposition') {
-                encryptedText = transpositionEncrypt(text);
+                resultText = transpositionCipher(text, action);
             } else if (encryptionType === 'playfair') {
-                encryptedText = playfairEncrypt(text, key);
+                resultText = playfairCipher(text, key, action);
             }
 
-            outputText.innerText = encryptedText;
+            outputText.innerText = resultText;
         }
 
-        // Caesar Cipher Encryption
-        function caesarEncrypt(text, shift) {
+        function caesarCipher(text, shift) {
             return text.split('').map(char => {
                 if (char.match(/[a-zA-Z]/)) {
-                    let code = char.charCodeAt(0);
-                    let base = char === char.toUpperCase() ? 65 : 97;
-                    return String.fromCharCode((code - base + shift) % 26 + base);
+                    const base = char === char.toUpperCase() ? 65 : 97;
+                    return String.fromCharCode((char.charCodeAt(0) - base + shift + 26) % 26 + base);
                 }
                 return char;
             }).join('');
         }
 
-        // Vigenère Cipher Encryption
-        function vigenereEncrypt(text, key) {
+        function vigenereCipher(text, key, action) {
             let result = '';
             let j = 0;
+            const direction = action === 'encrypt' ? 1 : -1;
             for (let i = 0; i < text.length; i++) {
                 let char = text[i];
                 if (char.match(/[a-zA-Z]/)) {
-                    let code = char.charCodeAt(0);
-                    let base = char === char.toUpperCase() ? 65 : 97;
-                    let shift = key[j % key.length].toLowerCase().charCodeAt(0) - 97;
-                    result += String.fromCharCode((code - base + shift) % 26 + base);
+                    const base = char === char.toUpperCase() ? 65 : 97;
+                    const shift = direction * (key[j % key.length].toLowerCase().charCodeAt(0) - 97);
+                    result += String.fromCharCode((char.charCodeAt(0) - base + shift + 26) % 26 + base);
                     j++;
                 } else {
                     result += char;
@@ -252,13 +254,11 @@
             return result;
         }
 
-        // Transposition Cipher Encryption
-        function transpositionEncrypt(text) {
-            return text.split('').reverse().join('');
+        function transpositionCipher(text, action) {
+            return action === 'encrypt' ? text.split('').reverse().join('') : text.split('').reverse().join('');
         }
 
-        // Playfair Cipher Encryption
-        function playfairEncrypt(text, key) {
+        function playfairCipher(text, key, action) {
             let grid = generatePlayfairGrid(key);
             let pairs = prepareTextForPlayfair(text);
             let encryptedText = '';
